@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import JT.com.br.JT.Locator.LocatorApartment;
 import JT.com.br.JT.STATUS.StatusDoApartamento;
+import JT.com.br.JT.User.User;
 
 @Entity
 public class Apartment {
@@ -24,6 +25,9 @@ public class Apartment {
 	private String Description;
 	private String urlImagem;
 	private String cidade;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	private User user;
 
 	public String getCidade() {
 		return cidade;
