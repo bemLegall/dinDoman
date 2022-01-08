@@ -1,10 +1,12 @@
 package JT.com.br.JT.Controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,14 +15,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import JT.com.br.JT.Dto.ApartamentDto;
+import JT.com.br.JT.Form.FormApartment;
 import JT.com.br.JT.Repository.ApartmentRepository;
 import JT.com.br.JT.Repository.CondominiumRep;
 import JT.com.br.JT.STATUS.StatusDoApartamento;
 import JT.com.br.JT.places.Apartment;
-import JT.com.br.JT.places.Condominium;
 
-@Controller
+@RestController
 @RequestMapping("apartment")
 public class ApartamentController {
 
@@ -32,27 +37,28 @@ public class ApartamentController {
 		this.cRep = cRep;
 	}
 
-	@GetMapping("/lista")
-	public String apartamentList(Model model) {
+	@GetMapping
+	public List<ApartamentDto> apartamentList() {
 		List<Apartment> apartments = aRep.findAll();
-		List<Condominium> condominios = cRep.findAll();
-		model.addAttribute("apartments", apartments);
-		model.addAttribute("condominios", condominios);
-		// ApartamentDto.convertToList(apartaments);
-		return "apartamento/home";
+		
+		 return ApartamentDto.convertToList(apartments);
 	}
 
 	@GetMapping(path = { "/{id}" })
-	public String findById(@PathVariable long id, Model model) {
+	public ResponseEntity<ApartamentDto> findById(@PathVariable long id) {
 		Optional<Apartment> apartment = aRep.findById(id);
-
-		model.addAttribute("apartment", apartment.get());
-		return "apartamento/id";
+		if(apartment.isPresent()) {
+			return ResponseEntity.ok(new ApartamentDto(apartment.get()));
+		}return ResponseEntity.notFound().build();
 	}
 
 	@PostMapping
-	public Apartment create(@RequestBody Apartment apartment) {
-		return aRep.save(apartment);
+	public ResponseEntity<ApartamentDto> create(@RequestBody @Valid FormApartment formulario, UriComponentsBuilder uriBuilder) {
+		Apartment apartment = formulario.converter(cRep);
+		aRep.save(apartment);
+		URI uri = uriBuilder.path("/apartment/{id}").buildAndExpand(apartment.getId()).toUri();
+		return ResponseEntity.created(uri).body(new ApartamentDto(apartment));
+		
 	}
 
 	@PutMapping(value = "/{id}")

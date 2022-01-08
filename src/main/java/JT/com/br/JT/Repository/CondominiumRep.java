@@ -8,6 +8,8 @@ import JT.com.br.JT.places.Condominium;
 @Repository
 public interface CondominiumRep extends JpaRepository<Condominium, Long>  {
 
+	Condominium findByName(String nomeDoCondominio);
+
 	
 	
 	
